@@ -4,13 +4,17 @@ import pandas as pd
 
 
 class Client:
-    def __init__(self, server_url="http://api.modelmarket.io"):
+    def __init__(self, server_url="https://api.modelmarket.io", debug=False):
         self.server_url = server_url
         self.access_token = ""
         self.refresh_token = ""
+        self.debug = debug
 
     def authenticate(self, username, password):
         url = self.server_url + "/oauth/token"
+
+        if self.debug:
+            print("Auth url: ", url)
 
         payload = json.dumps({
             "username": username,
@@ -21,11 +25,23 @@ class Client:
             'Content-Type': 'application/json'
         }
 
-        response = requests.request("POST", url, headers=headers, data=payload)
+        response = requests.post(url, headers=headers, data=payload)
 
-        json_response = response.json()
+        # Check HTTP status code
+        if response.status_code != 200:
+            raise Exception(f"Failed to authenticate: {response.status_code} {response.reason}")
+
+        try:
+            # Try to parse the JSON response
+            json_response = response.json()
+        except ValueError:
+            raise Exception("Failed to parse JSON response")
+
+        # Check if 'access_token' and 'refresh_token' are in the JSON response
+        if 'access_token' not in json_response or 'refresh_token' not in json_response:
+            raise Exception("Missing expected keys in JSON response")
+
         self.access_token = json_response['access_token']
-        # print(self.acces_token)
         self.refresh_token = json_response['refresh_token']
 
     def models(self, df, provider="", model_name="", model_type="normal", chunk_size=10000):
@@ -67,7 +83,7 @@ class Client:
 
         return full_predictions_df[predict_column]
 
-    def df_api_input(df):
+    def df_api_input(self, df):
         payload = df.to_json(orient="split")
         parsed_payload = json.loads(payload)
 
