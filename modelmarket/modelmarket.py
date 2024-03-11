@@ -16,10 +16,10 @@ class Client:
         if self.debug:
             print("Auth url: ", url)
 
-        payload = json.dumps({
+        payload = {
             "username": username,
             "password": password
-        })
+        }
 
         headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
