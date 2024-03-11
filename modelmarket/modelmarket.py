@@ -22,7 +22,7 @@ class Client:
         })
 
         headers = {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/x-www-form-urlencoded'
         }
 
         response = requests.post(url, headers=headers, data=payload)
