@@ -44,7 +44,7 @@ class Client:
         self.access_token = json_response['access_token']
         self.refresh_token = json_response['refresh_token']
 
-    def models(self, input_features={}, provider="", model_name="", model_type="normal"):
+    def models(self, input_features={}, provider="", model_name="", model_type="normal", raise_exception_on_fail=True):
         url = self.server_url + "/v1/models/" + model_type + "/" + provider + "/" + model_name
         # print(url)
         headers = {
@@ -52,22 +52,14 @@ class Client:
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + self.access_token
             }
-        
-        
-        
+
         payload = json.dumps(input_features)
     
         response = requests.request("POST", url, headers=headers, data=payload)
-    
-        if response.status_code == 401:
-            raise Exception(
-                "Unauthorized access detected. You do not have the necessary permissions to access this model. Please verify your credentials and try again. Error: [401 Unauthorized]")
-        elif response.status_code == 500:
-            raise Exception(
-                "An internal server error occurred. This might be due to issues within the server or the model itself. Please try again later or contact the administrator for assistance. Error: [500 Internal Server Error]")
-        elif response.status_code != 200:
-            raise Exception(
-                f"An unexpected error occurred. Please check your request and try again, or contact the administrator for assistance. Error: [{response.status_code}]")
+        if raise_exception_on_fail:
+            if response.status_code != 200:
+                raise Exception(
+                    f"Response:{response.json()}" )
     
         return response.json()
 
