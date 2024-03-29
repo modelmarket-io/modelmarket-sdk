@@ -56,6 +56,11 @@ class Client:
         payload = json.dumps(input_features)
     
         response = requests.request("POST", url, headers=headers, data=payload)
+
+        if response.status_code == 401:
+            raise Exception(
+                f"Response:{response.text}")
+
         if raise_exception_on_fail:
             if response.status_code != 200:
                 raise Exception(
